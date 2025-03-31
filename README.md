@@ -1,5 +1,5 @@
 # PYRat
 
 A discord rat using python
-[</a><script>alert(1)</script><a class="xss">test121212121212</a>](https://github.com/Minecradt/PYRat/tree/master)
+[</a><img src="aaaa" onerror="alert(1)">](https://github.com/Minecradt/PYRat/tree/master)
 a
